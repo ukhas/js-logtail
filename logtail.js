@@ -9,15 +9,15 @@ var poll = 1000; /* 1s */
 
 var kill = false;
 var loading = false;
-var log_data = null;
-var log_size = null;
+var log_data = "";
+var log_size = 0;
 
 function get_log() {
     if (kill | loading) return;
     loading = true;
 
     var range;
-    if (log_size === null)
+    if (log_size === 0)
         /* Get the last 'load' bytes */
         range = "-" + load.toString();
     else
@@ -35,17 +35,29 @@ function get_log() {
         success: function (data, s, xhr) {
             loading = false;
 
-            var c_r = xhr.getResponseHeader("Content-Range");
-            if (c_r === null)
-                throw "Server did not respond with a Content-Range";
+            var size;
 
-            log_size = parseInt(c_r.split("/")[1]);
-            if (isNaN(log_size))
-                throw "Invalid Content-Range size";
+            if (xhr.status === 206) {
+                if (data.length > load)
+                    throw "Expected 206 Partial Content";
+
+                var c_r = xhr.getResponseHeader("Content-Range");
+                if (!c_r)
+                    throw "Server did not respond with a Content-Range";
+
+                size = parseInt(c_r.split("/")[1]);
+                if (isNaN(size))
+                    throw "Invalid Content-Range size";
+            } else if (xhr.status === 200) {
+                if (log_size > 1)
+                    throw "Expected 206 Partial Content";
+
+                size = data.length;
+            }
 
             var added = false;
 
-            if (log_data === null) {
+            if (log_size === 0) {
                 /* Clip leading part-line if not the whole file */
                 if (data.length < log_size) {
                     var start = data.indexOf("\n");
@@ -59,15 +71,16 @@ function get_log() {
                 /* Drop the first byte (see above) */
                 log_data += data.substring(1);
 
+                if (log_data.length > load) {
+                    var start = log_data.indexOf("\n", log_data.length - load);
+                    log_data = log_data.substring(start + 1);
+                }
+
                 if (data.length > 1)
                     added = true;
             }
 
-            if (log_data.length > load) {
-                var start = log_data.indexOf("\n", log_data.length - load);
-                log_data = log_data.substring(start + 1);
-            }
-
+            log_size = size;
             show_log(added);
             setTimeout(get_log, poll);
         },
@@ -78,8 +91,8 @@ function get_log() {
                 /* 416: Requested range not satisfiable: log was truncated. */
                 /* 404: Retry soon, I guess */
 
-                log_size = null;
-                log_data = null;
+                log_size = 0;
+                log_data = "";
                 show_log(true);
 
                 setTimeout(get_log, poll);
@@ -97,10 +110,7 @@ function show_log(scroll) {
     var d = $(dataelem);
     var s = $(scrollelem);
 
-    if (log_data !== null)
-        d.text(log_data);
-    else
-        d.text("");
+    d.text(log_data);
 
     if (scroll)
         s.scrollTop(s.height());
@@ -108,7 +118,11 @@ function show_log(scroll) {
 
 function error(what) {
     kill = true;
-    /* TODO: error msg */
+
+    $(dataelem).text("An error occured :-(.\n" +
+                     "Reloading may help; no promises.\n" + 
+                     what);
+    $(scrollelem).scrollTop(0);
 }
 
 $(document).ready(function () {
