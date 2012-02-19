@@ -12,6 +12,9 @@ files - and all modern web servers support Range (tested lighttpd, cherokee,
 apache). Tested (briefly) in IE, FF, Chrome.
 
 Usage: symlink the log to /log, or alter the url in logtail.js. Other settings
-available in logtail.js including poll frequency.
+available in logtail.js including poll frequency. Then browse to index.html
 
 License is GNU GPL 3; see http://www.gnu.org/licenses/
+
+jQuery is included in this repository (jquery.min.js);
+see http://jquery.org/license

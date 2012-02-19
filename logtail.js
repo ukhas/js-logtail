@@ -1,3 +1,5 @@
+/* Copyright (c) 2012: Daniel Richman. License: GNU GPL 3 */
+
 (function () {
 
 var dataelem = "#data";
