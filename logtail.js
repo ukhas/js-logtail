@@ -4,6 +4,7 @@ var dataelem = "#data";
 var scrollelems = ["html", "body"];
 
 var url = "log";
+var fix_rn = true;
 var load = 30 * 1024; /* 30KB */
 var poll = 1000; /* 1s */
 
@@ -119,15 +120,18 @@ function scroll(where) {
 }
 
 function show_log() {
-    $(dataelem).text(log_data);
+    var t = log_data;
+    if (fix_rn)
+        t = t.replace(/\n/g, "\r\n");
+    $(dataelem).text(t);
     scroll(-1);
 }
 
 function error(what) {
     kill = true;
 
-    $(dataelem).text("An error occured :-(.\n" +
-                     "Reloading may help; no promises.\n" + 
+    $(dataelem).text("An error occured :-(.\r\n" +
+                     "Reloading may help; no promises.\r\n" + 
                      what);
     scroll(0);
 }
