@@ -1,10 +1,10 @@
 (function () {
 
 var dataelem = "#data";
-var scrollelem = "body";
+var scrollelems = ["html", "body"];
 
 var url = "log";
-var load = 30024; /* 30KB */
+var load = 30 * 1024; /* 30KB */
 var poll = 1000; /* 1s */
 
 var kill = false;
@@ -30,6 +30,7 @@ function get_log() {
      * the file has been trucnated */
 
     $.ajax(url, {
+        dataType: "text",
         cache: false,
         headers: {Range: "bytes=" + range},
         success: function (data, s, xhr) {
@@ -59,7 +60,7 @@ function get_log() {
 
             if (log_size === 0) {
                 /* Clip leading part-line if not the whole file */
-                if (data.length < log_size) {
+                if (data.length < size) {
                     var start = data.indexOf("\n");
                     log_data = data.substring(start + 1);
                 } else {
@@ -81,7 +82,8 @@ function get_log() {
             }
 
             log_size = size;
-            show_log(added);
+            if (added)
+                show_log(added);
             setTimeout(get_log, poll);
         },
         error: function (xhr, s, t) {
@@ -93,7 +95,7 @@ function get_log() {
 
                 log_size = 0;
                 log_data = "";
-                show_log(true);
+                show_log();
 
                 setTimeout(get_log, poll);
             } else {
@@ -106,14 +108,19 @@ function get_log() {
     });
 }
 
-function show_log(scroll) {
-    var d = $(dataelem);
-    var s = $(scrollelem);
+function scroll(where) {
+    for (var i = 0; i < scrollelems.length; i++) {
+        var s = $(scrollelems[i]);
+        if (where === -1)
+            s.scrollTop(s.height());
+        else
+            s.scrollTop(where);
+    }
+}
 
-    d.text(log_data);
-
-    if (scroll)
-        s.scrollTop(s.height());
+function show_log() {
+    $(dataelem).text(log_data);
+    scroll(-1);
 }
 
 function error(what) {
@@ -122,7 +129,7 @@ function error(what) {
     $(dataelem).text("An error occured :-(.\n" +
                      "Reloading may help; no promises.\n" + 
                      what);
-    $(scrollelem).scrollTop(0);
+    scroll(0);
 }
 
 $(document).ready(function () {
