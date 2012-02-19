@@ -35,8 +35,6 @@ function get_log() {
         success: function (data, s, xhr) {
             loading = false;
 
-            if (xhr.status !== 206) /* Partial Content */
-                throw "Server did not respond 206";
             var c_r = xhr.getResponseHeader("Content-Range");
             if (c_r === null)
                 throw "Server did not respond with a Content-Range";
@@ -49,7 +47,7 @@ function get_log() {
 
             if (log_data === null) {
                 /* Clip leading part-line if not the whole file */
-                if (data.length !== log_size) {
+                if (data.length < log_size) {
                     var start = data.indexOf("\n");
                     log_data = data.substring(start + 1);
                 } else {
@@ -61,13 +59,13 @@ function get_log() {
                 /* Drop the first byte (see above) */
                 log_data += data.substring(1);
 
-                if (log_data.length > load) {
-                    var start = log_data.indexOf("\n", log_data.length - load);
-                    log_data = log_data.substring(start + 1);
-                }
-
                 if (data.length > 1)
                     added = true;
+            }
+
+            if (log_data.length > load) {
+                var start = log_data.indexOf("\n", log_data.length - load);
+                log_data = log_data.substring(start + 1);
             }
 
             show_log(added);
