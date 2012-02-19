@@ -4,7 +4,7 @@ var dataelem = "#data";
 var scrollelem = "body";
 
 var url = "log";
-var load = 10024; /* 10KB */
+var load = 30024; /* 30KB */
 var poll = 1000; /* 1s */
 
 var kill = false;
