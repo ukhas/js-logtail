@@ -1,4 +1,5 @@
 /* Copyright (c) 2012: Daniel Richman. License: GNU GPL 3 */
+/* Additional features: Priyesh Patel                     */
 
 (function () {
 
@@ -12,6 +13,7 @@ var poll = 1000; /* 1s */
 
 var kill = false;
 var loading = false;
+var reverse = true;
 var log_data = "";
 var log_size = 0;
 
@@ -123,10 +125,21 @@ function scroll(where) {
 
 function show_log() {
     var t = log_data;
+
+    if (reverse) {
+        var t_a = t.split(/\n/g);
+        t_a.reverse();
+        if (t_a[0] == "") 
+            t_a.shift();
+        t = t_a.join("\n");
+    }
+
     if (fix_rn)
         t = t.replace(/\n/g, "\r\n");
+
     $(dataelem).text(t);
-    scroll(-1);
+    if (!reverse)
+        scroll(-1);
 }
 
 function error(what) {
@@ -140,6 +153,12 @@ function error(what) {
 
 $(document).ready(function () {
     $(window).error(error);
+
+    /* If URL is /logtail/?noreverse display in chronological order */
+    var hash = location.search.replace(/^\?/, "");
+    if (hash == "noreverse")
+        reverse = false;
+
     get_log();
 });
 
