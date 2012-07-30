@@ -1,13 +1,62 @@
 <!DOCTYPE html>
-<!-- Copyright (c) 2012 Daniel Richman; GNU GPL 3 -->
-<html>
-    <head>
-        <title>habitat parser log viewer</title>
-        <script type="text/javascript" src="jquery.min.js"></script>
-        <script type="text/javascript" src="logtail.js"></script>
-        <link href="logtail.css" rel="stylesheet" type="text/css">
-    </head>
-    <body>
+
+<!-- habitat: parser logtail -->
+<!-- http://habitat.habhub.org -->
+<!-- (C) Copyright 2012; GNU GPL 3-->
+
+<!--[if lt IE 7 ]><html class="ie ie6" lang="en"> <![endif]-->
+<!--[if IE 7 ]><html class="ie ie7" lang="en"> <![endif]-->
+<!--[if IE 8 ]><html class="ie ie8" lang="en"> <![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--><html lang="en"> <!--<![endif]-->
+<head>
+    <meta charset="utf-8"/>
+    <title>parser logtail - habitat</title>
+    <meta name="description" content="javascript logtailer to view habitat parser logs"/>
+    <meta name="author" content="Daniel Richman and Priyesh Patel"/>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+	<link type="text/css" rel="stylesheet" href="t/css/base.css"/>
+	<link type="text/css" rel="stylesheet" href="t/css/skeleton.css"/>
+	<link type="text/css" rel="stylesheet" href="t/css/layout.css"/>
+    <link type="text/css" rel="stylesheet" href="logtail.css" />
+
+    <script type="text/javascript" src="jquery.min.js"></script>
+    <script type="text/javascript" src="logtail.js"></script>
+
+	<!--[if lt IE 9]>
+		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+
+    <link rel="shortcut icon" href="t/images/favicon.ico" />
+</head>
+
+<body>
+
+    <div id="top">
+        <header>
+            <div class="container">
+                <div class="sixteen columns">
+                    <h1 class="no-margin"><img src="t/images/header_logo.jpg" alt="habitat" title="habitat"/></h1>
+                    <span id="app_name"><b>logtail</b></span>
+                </div>
+            </div>
+        </header>
+
+        <div id="grey-section">
+            <div class="container">
+                <div class="two-thirds column">
+                    <h3 class="remove-bottom" id="page_title">parser logtail</h3>
+                    <p class="remove-bottom" id="page_subtitle">A javascript
+                    logtailer to view the habitat parser's logs.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="data-container">
         <pre id="data">Loading...</pre>
-    </body>
+    </div>
+
+</body>
 </html>
