@@ -1,0 +1,3 @@
+[submodule "t"]
+	path = t
+	url = https://github.com/ukhas/habitat-template.git
