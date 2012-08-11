@@ -4,6 +4,7 @@
 (function () {
 
 var dataelem = "#data";
+var pausetoggle = "#pause";
 var scrollelems = ["html", "body"];
 
 var url = "log";
@@ -13,6 +14,7 @@ var poll = 1000; /* 1s */
 
 var kill = false;
 var loading = false;
+var pause = false;
 var reverse = true;
 var log_data = "";
 var log_size = 0;
@@ -124,6 +126,8 @@ function scroll(where) {
 }
 
 function show_log() {
+    if (pause) return;
+
     var t = log_data;
 
     if (reverse) {
@@ -158,6 +162,13 @@ $(document).ready(function () {
     var hash = location.search.replace(/^\?/, "");
     if (hash == "noreverse")
         reverse = false;
+
+    /* Add pause toggle */
+    $(pausetoggle).click(function (e) {
+        pause = !pause;
+        $(pausetoggle).text(pause ? "Unpause" : "Pause");
+        e.preventDefault();
+    });
 
     get_log();
 });
