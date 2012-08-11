@@ -167,6 +167,7 @@ $(document).ready(function () {
     $(pausetoggle).click(function (e) {
         pause = !pause;
         $(pausetoggle).text(pause ? "Unpause" : "Pause");
+        show_log();
         e.preventDefault();
     });
 
