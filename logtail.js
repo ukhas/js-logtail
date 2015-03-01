@@ -24,12 +24,16 @@ function get_log() {
     loading = true;
 
     var range;
-    if (log_size === 0)
+    var first_load;
+    if (log_size === 0) {
         /* Get the last 'load' bytes */
         range = "-" + load.toString();
-    else
+        first_load = true;
+    } else {
         /* Get the (log_size - 1)th byte, onwards. */
         range = (log_size - 1).toString() + "-";
+        first_load = false;
+    }
 
     /* The "log_size - 1" deliberately reloads the last byte, which we already
      * have. This is to prevent a 416 "Range unsatisfiable" error: a response
@@ -60,7 +64,7 @@ function get_log() {
                 if (isNaN(size))
                     throw "Invalid Content-Range size";
             } else if (xhr.status === 200) {
-                if (log_size > 1)
+                if (!first_load)
                     throw "Expected 206 Partial Content";
 
                 size = xhr.getResponseHeader("Content-Length");
@@ -69,7 +73,7 @@ function get_log() {
 
             var added = false;
 
-            if (log_size === 0) {
+            if (first_load) {
                 /* Clip leading part-line if not the whole file */
                 if (content_size < size) {
                     var start = data.indexOf("\n");
