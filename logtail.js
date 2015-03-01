@@ -116,10 +116,7 @@ function get_log() {
 
                 setTimeout(get_log, poll);
             } else {
-                if (s == "error")
-                    error(xhr.statusText);
-                else
-                    error("AJAX Error: " + s);
+                throw "Unknown AJAX Error (status " + xhr.status + ")";
             }
         }
     });
@@ -163,10 +160,12 @@ function error(what) {
                      "Reloading may help; no promises.\r\n" + 
                      what);
     scroll(0);
+
+    return false;
 }
 
 $(document).ready(function () {
-    $(window).error(error);
+    window.onerror = error;
 
     /* If URL is /logtail/?noreverse display in chronological order */
     var hash = location.search.replace(/^\?/, "");
