@@ -25,14 +25,17 @@ function get_log() {
 
     var range;
     var first_load;
+    var must_get_206;
     if (log_file_size === 0) {
         /* Get the last 'load' bytes */
         range = "-" + load.toString();
         first_load = true;
+        must_get_206 = false;
     } else {
         /* Get the (log_file_size - 1)th byte, onwards. */
         range = (log_file_size - 1).toString() + "-";
         first_load = false;
+        must_get_206 = log_file_size > 1;
     }
 
     /* The "log_file_size - 1" deliberately reloads the last byte, which we already
@@ -50,24 +53,26 @@ function get_log() {
             var content_size;
 
             if (xhr.status === 206) {
-                if (data.length > load)
-                    throw "Expected 206 Partial Content";
-
                 var c_r = xhr.getResponseHeader("Content-Range");
                 if (!c_r)
                     throw "Server did not respond with a Content-Range";
 
                 log_file_size = parseInt(c_r.split("/")[1]);
                 content_size = xhr.getResponseHeader("Content-Length");
-                
-                if (isNaN(log_file_size))
-                    throw "Invalid Content-Range size";
             } else if (xhr.status === 200) {
-                if (!first_load)
+                if (must_get_206)
                     throw "Expected 206 Partial Content";
 
                 content_size = log_file_size = xhr.getResponseHeader("Content-Length");
+            } else {
+                throw "Unexpected status " + xhr.status;
             }
+
+            if (isNaN(content_size) || isNaN(log_file_size))
+                throw "Invalid content_size or log_file_size";
+
+            if (first_load && data.length > load)
+                throw "Server's response was too long";
 
             var added = false;
 
