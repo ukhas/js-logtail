@@ -44,6 +44,7 @@ function get_log() {
             loading = false;
 
             var size;
+            var content_size;
 
             if (xhr.status === 206) {
                 if (data.length > load)
@@ -54,20 +55,23 @@ function get_log() {
                     throw "Server did not respond with a Content-Range";
 
                 size = parseInt(c_r.split("/")[1]);
+                content_size = xhr.getResponseHeader("Content-Length");
+                
                 if (isNaN(size))
                     throw "Invalid Content-Range size";
             } else if (xhr.status === 200) {
                 if (log_size > 1)
                     throw "Expected 206 Partial Content";
 
-                size = data.length;
+                size = xhr.getResponseHeader("Content-Length");
+                content_size = size;
             }
 
             var added = false;
 
             if (log_size === 0) {
                 /* Clip leading part-line if not the whole file */
-                if (data.length < size) {
+                if (content_size < size) {
                     var start = data.indexOf("\n");
                     log_data = data.substring(start + 1);
                 } else {
