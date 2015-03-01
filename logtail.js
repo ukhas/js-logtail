@@ -47,7 +47,6 @@ function get_log() {
         success: function (data, s, xhr) {
             loading = false;
 
-            var size;
             var content_size;
 
             if (xhr.status === 206) {
@@ -58,24 +57,23 @@ function get_log() {
                 if (!c_r)
                     throw "Server did not respond with a Content-Range";
 
-                size = parseInt(c_r.split("/")[1]);
+                log_size = parseInt(c_r.split("/")[1]);
                 content_size = xhr.getResponseHeader("Content-Length");
                 
-                if (isNaN(size))
+                if (isNaN(log_size))
                     throw "Invalid Content-Range size";
             } else if (xhr.status === 200) {
                 if (!first_load)
                     throw "Expected 206 Partial Content";
 
-                size = xhr.getResponseHeader("Content-Length");
-                content_size = size;
+                content_size = log_size = xhr.getResponseHeader("Content-Length");
             }
 
             var added = false;
 
             if (first_load) {
                 /* Clip leading part-line if not the whole file */
-                if (content_size < size) {
+                if (content_size < log_size) {
                     var start = data.indexOf("\n");
                     log_data = data.substring(start + 1);
                 } else {
@@ -96,7 +94,6 @@ function get_log() {
                     added = true;
             }
 
-            log_size = size;
             if (added)
                 show_log(added);
             setTimeout(get_log, poll);
