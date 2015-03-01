@@ -17,7 +17,7 @@ var loading = false;
 var pause = false;
 var reverse = true;
 var log_data = "";
-var log_size = 0;
+var log_file_size = 0;
 
 function get_log() {
     if (kill | loading) return;
@@ -25,17 +25,17 @@ function get_log() {
 
     var range;
     var first_load;
-    if (log_size === 0) {
+    if (log_file_size === 0) {
         /* Get the last 'load' bytes */
         range = "-" + load.toString();
         first_load = true;
     } else {
-        /* Get the (log_size - 1)th byte, onwards. */
-        range = (log_size - 1).toString() + "-";
+        /* Get the (log_file_size - 1)th byte, onwards. */
+        range = (log_file_size - 1).toString() + "-";
         first_load = false;
     }
 
-    /* The "log_size - 1" deliberately reloads the last byte, which we already
+    /* The "log_file_size - 1" deliberately reloads the last byte, which we already
      * have. This is to prevent a 416 "Range unsatisfiable" error: a response
      * of length 1 tells us that the file hasn't changed yet. A 416 shows that
      * the file has been trucnated */
@@ -57,23 +57,23 @@ function get_log() {
                 if (!c_r)
                     throw "Server did not respond with a Content-Range";
 
-                log_size = parseInt(c_r.split("/")[1]);
+                log_file_size = parseInt(c_r.split("/")[1]);
                 content_size = xhr.getResponseHeader("Content-Length");
                 
-                if (isNaN(log_size))
+                if (isNaN(log_file_size))
                     throw "Invalid Content-Range size";
             } else if (xhr.status === 200) {
                 if (!first_load)
                     throw "Expected 206 Partial Content";
 
-                content_size = log_size = xhr.getResponseHeader("Content-Length");
+                content_size = log_file_size = xhr.getResponseHeader("Content-Length");
             }
 
             var added = false;
 
             if (first_load) {
                 /* Clip leading part-line if not the whole file */
-                if (content_size < log_size) {
+                if (content_size < log_file_size) {
                     var start = data.indexOf("\n");
                     log_data = data.substring(start + 1);
                 } else {
@@ -105,7 +105,7 @@ function get_log() {
                 /* 416: Requested range not satisfiable: log was truncated. */
                 /* 404: Retry soon, I guess */
 
-                log_size = 0;
+                log_file_size = 0;
                 log_data = "";
                 show_log();
 
