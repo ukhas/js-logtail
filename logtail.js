@@ -19,6 +19,14 @@ var reverse = true;
 var log_data = "";
 var log_file_size = 0;
 
+/* :-( https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseInt */
+function parseInt2(value) {
+    if(!(/^[0-9]+$/.test(value))) throw "Invalid integer " + value;
+    var v = Number(value);
+    if (isNaN(v))                 throw "Invalid integer " + value;
+    return v;
+}
+
 function get_log() {
     if (kill | loading) return;
     loading = true;
@@ -57,20 +65,17 @@ function get_log() {
                 if (!c_r)
                     throw "Server did not respond with a Content-Range";
 
-                log_file_size = parseInt(c_r.split("/")[1]);
-                content_size = parseInt(xhr.getResponseHeader("Content-Length"));
+                log_file_size = parseInt2(c_r.split("/")[1]);
+                content_size = parseInt2(xhr.getResponseHeader("Content-Length"));
             } else if (xhr.status === 200) {
                 if (must_get_206)
                     throw "Expected 206 Partial Content";
 
                 content_size = log_file_size =
-                        parseInt(xhr.getResponseHeader("Content-Length"));
+                        parseInt2(xhr.getResponseHeader("Content-Length"));
             } else {
                 throw "Unexpected status " + xhr.status;
             }
-
-            if (isNaN(content_size) || isNaN(log_file_size))
-                throw "Invalid content_size or log_file_size";
 
             if (first_load && data.length > load)
                 throw "Server's response was too long";
