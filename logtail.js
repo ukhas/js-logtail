@@ -58,12 +58,13 @@ function get_log() {
                     throw "Server did not respond with a Content-Range";
 
                 log_file_size = parseInt(c_r.split("/")[1]);
-                content_size = xhr.getResponseHeader("Content-Length");
+                content_size = parseInt(xhr.getResponseHeader("Content-Length"));
             } else if (xhr.status === 200) {
                 if (must_get_206)
                     throw "Expected 206 Partial Content";
 
-                content_size = log_file_size = xhr.getResponseHeader("Content-Length");
+                content_size = log_file_size =
+                        parseInt(xhr.getResponseHeader("Content-Length"));
             } else {
                 throw "Unexpected status " + xhr.status;
             }
