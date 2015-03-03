@@ -17,21 +17,36 @@ var loading = false;
 var pause = false;
 var reverse = true;
 var log_data = "";
-var log_size = 0;
+var log_file_size = 0;
+
+/* :-( https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseInt */
+function parseInt2(value) {
+    if(!(/^[0-9]+$/.test(value))) throw "Invalid integer " + value;
+    var v = Number(value);
+    if (isNaN(v))                 throw "Invalid integer " + value;
+    return v;
+}
 
 function get_log() {
     if (kill | loading) return;
     loading = true;
 
     var range;
-    if (log_size === 0)
+    var first_load;
+    var must_get_206;
+    if (log_file_size === 0) {
         /* Get the last 'load' bytes */
         range = "-" + load.toString();
-    else
-        /* Get the (log_size - 1)th byte, onwards. */
-        range = (log_size - 1).toString() + "-";
+        first_load = true;
+        must_get_206 = false;
+    } else {
+        /* Get the (log_file_size - 1)th byte, onwards. */
+        range = (log_file_size - 1).toString() + "-";
+        first_load = false;
+        must_get_206 = log_file_size > 1;
+    }
 
-    /* The "log_size - 1" deliberately reloads the last byte, which we already
+    /* The "log_file_size - 1" deliberately reloads the last byte, which we already
      * have. This is to prevent a 416 "Range unsatisfiable" error: a response
      * of length 1 tells us that the file hasn't changed yet. A 416 shows that
      * the file has been trucnated */
@@ -43,31 +58,33 @@ function get_log() {
         success: function (data, s, xhr) {
             loading = false;
 
-            var size;
+            var content_size;
 
             if (xhr.status === 206) {
-                if (data.length > load)
-                    throw "Expected 206 Partial Content";
-
                 var c_r = xhr.getResponseHeader("Content-Range");
                 if (!c_r)
                     throw "Server did not respond with a Content-Range";
 
-                size = parseInt(c_r.split("/")[1]);
-                if (isNaN(size))
-                    throw "Invalid Content-Range size";
+                log_file_size = parseInt2(c_r.split("/")[1]);
+                content_size = parseInt2(xhr.getResponseHeader("Content-Length"));
             } else if (xhr.status === 200) {
-                if (log_size > 1)
+                if (must_get_206)
                     throw "Expected 206 Partial Content";
 
-                size = data.length;
+                content_size = log_file_size =
+                        parseInt2(xhr.getResponseHeader("Content-Length"));
+            } else {
+                throw "Unexpected status " + xhr.status;
             }
+
+            if (first_load && data.length > load)
+                throw "Server's response was too long";
 
             var added = false;
 
-            if (log_size === 0) {
+            if (first_load) {
                 /* Clip leading part-line if not the whole file */
-                if (data.length < size) {
+                if (content_size < log_file_size) {
                     var start = data.indexOf("\n");
                     log_data = data.substring(start + 1);
                 } else {
@@ -88,7 +105,6 @@ function get_log() {
                     added = true;
             }
 
-            log_size = size;
             if (added)
                 show_log(added);
             setTimeout(get_log, poll);
@@ -100,16 +116,13 @@ function get_log() {
                 /* 416: Requested range not satisfiable: log was truncated. */
                 /* 404: Retry soon, I guess */
 
-                log_size = 0;
+                log_file_size = 0;
                 log_data = "";
                 show_log();
 
                 setTimeout(get_log, poll);
             } else {
-                if (s == "error")
-                    error(xhr.statusText);
-                else
-                    error("AJAX Error: " + s);
+                throw "Unknown AJAX Error (status " + xhr.status + ")";
             }
         }
     });
@@ -153,10 +166,12 @@ function error(what) {
                      "Reloading may help; no promises.\r\n" + 
                      what);
     scroll(0);
+
+    return false;
 }
 
 $(document).ready(function () {
-    $(window).error(error);
+    window.onerror = error;
 
     /* If URL is /logtail/?noreverse display in chronological order */
     var hash = location.search.replace(/^\?/, "");
