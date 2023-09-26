@@ -11,8 +11,9 @@ No server side code is required - it's all just static
 files - and all modern web servers support Range (tested lighttpd, cherokee,
 apache). Tested (briefly) in IE, FF, Chrome.
 
-Usage: symlink the log to /log, or alter the url in logtail.js. Other settings
-available in logtail.js including poll frequency. Then browse to index.html
+Usage: symlink the log to /log, provide ?url=http://my.custom.path/log, or alter
+the url in logtail.js. Other settings available in logtail.js including poll
+frequency. Then browse to index.html
 
 License is GNU GPL 3; see http://www.gnu.org/licenses/
 
